@@ -16,6 +16,7 @@ if __name__ == "__main__":
     # Load data from file
     # Make sure that vehicles.dat is in data/
     train_x, train_y, test_x, test_y = get_vehicle_data()
+    print(train_x)
     num_train = train_x.shape[0]
     num_test = test_x.shape[0]  
     
@@ -37,12 +38,12 @@ if __name__ == "__main__":
     test_x = add_one(test_x)
    
     # [TODO 1.11] Create TF placeholders to feed train_x and train_y when training
-    x = None 
-    y = None 
+    x = tf.placeholders(np.float32) 
+    y = tf.placeholders(np.float32)  
 
     # [TODO 1.12] Create weights (W) using TF variables
     w_shape = (train_x.shape[1],1)
-    w = None 
+    w = tf.variables(tf.random_normal(shape=(),dtype=tf.float32,name="w")) 
 
     # [TODO 1.13] Create a feed-forward operator
     pred = None 
