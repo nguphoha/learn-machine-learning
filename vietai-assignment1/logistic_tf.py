@@ -16,7 +16,6 @@ if __name__ == "__main__":
     # Load data from file
     # Make sure that vehicles.dat is in data/
     train_x, train_y, test_x, test_y = get_vehicle_data()
-    print(train_x)
     num_train = train_x.shape[0]
     num_test = test_x.shape[0]  
     
@@ -38,26 +37,30 @@ if __name__ == "__main__":
     test_x = add_one(test_x)
    
     # [TODO 1.11] Create TF placeholders to feed train_x and train_y when training
-    x = tf.placeholders(np.float32) 
-    y = tf.placeholders(np.float32)  
+    x = tf.placeholder(np.float64) 
+    y = tf.placeholder(np.float64) 
+    batch_size = tf.placeholder(np.float64)
 
     # [TODO 1.12] Create weights (W) using TF variables
+    
     w_shape = (train_x.shape[1],1)
-    w = tf.variables(tf.random_normal(shape=(),dtype=tf.float32,name="w")) 
+    #np.random.normal(0, np.sqrt(2./np.sum(w_shape)), w_shape)
+    w = tf.Variable(np.random.normal(0, np.sqrt(2./np.sum(w_shape)), w_shape))
 
     # [TODO 1.13] Create a feed-forward operator
-    pred = None 
+    pred = tf.sigmoid (tf.matmul(x,w))
 
     # [TODO 1.14] Write the cost function
-    cost = None 
+    #n_sample=y.shape[0] 
+    cost = tf.reduce_mean(-y*tf.log(pred) - (1-y)*tf.log(1-pred))
 
     # Define hyper-parameters and train-related parameters
     num_epoch = 1000
     learning_rate = 0.01    
 
     # [TODO 1.15] Create an SGD optimizer
-    optimizer = None 
-
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
+    
     # Some meta parameters
     epochs_to_draw = 100
     all_loss = []
@@ -72,8 +75,9 @@ if __name__ == "__main__":
 
         for e in range(num_epoch):
             # [TODO 1.16] Compute loss and update weights here
-            loss = 0
+            _, loss = sess.run([optimizer, cost], feed_dict={x: train_x, y: train_y,batch_size: len(train_y)})
             # Update weights...
+            sess.run(w)
 
             all_loss.append(loss)
 
@@ -83,5 +87,6 @@ if __name__ == "__main__":
                 plt.pause(0.1)     
                 print("Epoch %d: loss is %.5f" % (e+1, loss))
         
-        y_hat = sess.run(pred, feed_dict={'x:0': test_x})
+       # y_hat = sess.run(pred, feed_dict={'x:0': test_x})
+        y_hat = sess.run(pred, feed_dict={'x': test_x})
         test(y_hat, test_y)

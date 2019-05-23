@@ -32,10 +32,21 @@ class LogisticClassifier(object):
         """
         # [TODO 1.5]
         # Compute feedforward result
-
-        result = None 
+        """
+        N = x.shape[1]
+        d = X.shape[0]
+        print(N)
+        mix_id = np.random.permutation(N)
+        for i in mix_id:
+            xi = X[:, i].reshape(d, 1)
+            zi = np.dot(self.w[-1].T, xi)
+            zi = 1/(1 + np.exp(-zi))
+        """
+        z = np.dot(x, self.w)
+        result = 1/(1 + np.exp(-z))
+        
         return result
-
+        
 
     def compute_loss(self, y, y_hat):
         """compute_loss
@@ -48,9 +59,15 @@ class LogisticClassifier(object):
         """
         # [TODO 1.6]
         # Compute loss value (a single number)
-
-        loss = 0
-        return loss
+        m = y.shape[0]        
+        
+        total_cost = -(1 / m) * np.sum( y * np.log(y_hat) + (1 - y) * np.log( 1 - y_hat))
+        return total_cost
+        
+        #logprobs = np.multiply(np.log(y_hat), y) + np.multiply((1 - y), np.log(1 - y_hat))
+        #loss = -np.sum(logprobs) / self.w.shape[0]
+        
+        #return loss
 
 
     def get_grad(self, x, y, y_hat):
@@ -64,9 +81,11 @@ class LogisticClassifier(object):
         """ 
         # [TODO 1.7]
         # Compute the gradient matrix of w, it has the same size of w
-
-        w_grad = None
-        return w_grad
+        m = y.shape[0]  
+        return (1 / m) * np.dot(x.T,y_hat- y)
+    
+        #w_grad = np.mean((y_hat - y)*x)
+        #return w_grad
 
 
     def update_weight(self, grad, learning_rate):
@@ -79,7 +98,7 @@ class LogisticClassifier(object):
         # [TODO 1.8]
         # Update w using SGD
 
-        self.w = self.w
+        self.w = self.w - learning_rate * grad
 
 
     def update_weight_momentum(self, grad, learning_rate, momentum, momentum_rate):
@@ -94,7 +113,7 @@ class LogisticClassifier(object):
         # [TODO 1.9]
         # Update w using SGD with momentum
 
-        self.w = self.w
+        self.w = self.w - momentum_rate * momentum - learning_rate * grad
 
     
 def plot_loss(all_loss):
@@ -115,6 +134,13 @@ def normalize_per_pixel(train_x, test_x):
     # train_x = ...
     # test_x = ...
 
+    #tính TB và áp dụng riêng cho từng pixel trong số RxC
+    mean = train_x.mean(axis=0)
+    #tính phương sai và áp dụng riêng cho từng pixel trong số RxC
+    std = train_x.std(axis=0)
+    train_x = (train_x - mean) / std
+    test_x = (test_x - mean) / std
+    
     return train_x, test_x
 
 
@@ -129,7 +155,12 @@ def normalize_all_pixel(train_x, test_x):
     # train_mean and train_std should have the shape of (1, image_height, image_width) 
     # train_x = ...
     # test_x = ...
-
+    #tính TB và áp dụng  cho all pixel
+    mean = train_x.mean()
+    std = train_x.std()
+    train_x = (train_x - mean) / std
+    test_x = (test_x - mean) / std
+    
     return train_x, test_x
 
 
@@ -138,8 +169,8 @@ def reshape2D(tensor):
     Reshape our 3D tensors to 2D. A 3D tensor of shape (num_samples, image_height, image_width) must be reshaped into (num_samples, image_height*image_width)
     """
     # [TODO 1.3]
-
-    return tensor
+    tensor2D = tensor.reshape(-1,tensor.shape[1] * tensor.shape[2])
+    return tensor2D
 
 
 def add_one(x):
@@ -149,9 +180,9 @@ def add_one(x):
     :param x: input data
     """
     # [TODO 1.4]
-
+    one = np.ones((x.shape[0],1))
+    x = np.concatenate((x,one), axis = 1)
     return x
-
 
 def test(y_hat, test_y):
     """test
@@ -163,10 +194,19 @@ def test(y_hat, test_y):
     
     # [TODO 1.10]
     # Compute test scores using test_y and y_hat
-
-    precision = 0
-    recall = 0
-    f1 = 0
+    
+    TP = y_hat >= 0.5
+    ones = TP * test_y
+    # tong so cac mau ma mo hinh du doan la positive (s = 1) va thuc te co nhan positive (y = 1)
+    tp = np.count_nonzero(ones)
+    # tong so cac mau ma mo hinh du doan la positive (s = 1) va thuc te co nhan negative (y = 0)
+    fp = np.count_nonzero(TP) - tp
+    # tong so mau co label positive trong tap test
+    p = np.count_nonzero(test_y)
+    
+    precision = tp/(tp + fp)
+    recall = tp/p
+    f1 = 2/(1/precision + 1/recall)
     print("Precision: %.3f" % precision)
     print("Recall: %.3f" % recall)
     print("F1-score: %.3f" % f1)
