@@ -143,23 +143,25 @@ def test(y_hat, test_y):
     :param y_hat: predicted probabilites, output of classifier.feed_forward
     :param test_y: test labels
     """
-    
-    confusion_mat = np.zeros((10,10))
-
+   
     # [TODO 2.7]
     # Compute the confusion matrix here
-    y_pred = np.argmax(y_hat, axis=1)
+	 
+	# confusion matrix
+    cm = np.zeros((10,10))
+	
+    y_pre = np.argmax(y_hat, axis=1)
     y_true = np.argmax(test_y, axis=1)
-    for i in range(len(y_pred)):
-        confusion_mat[y_true[i], y_pred[i]] += 1
+    for i in range(len(y_pre)):
+        cm[y_true[i], y_pre[i]] += 1
 
-    confusion_mat /= confusion_mat.sum(axis=1, keepdims=True)
+    cm /= cm.sum(axis=1, keepdims=True)
 
     np.set_printoptions(precision=2)
     print('Confusion matrix:')
-    print(confusion_mat)
+    print(cm)
     print('Diagonal values:')
-    print(confusion_mat.flatten()[0::11])
+    print(cm.flatten()[0::11])
     
     
 if __name__ == "__main__":
